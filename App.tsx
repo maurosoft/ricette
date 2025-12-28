@@ -159,7 +159,7 @@ const App: React.FC = () => {
       {/* MOBILE BOTTOM NAV - Fedele allo screenshot */}
       {currentUser && (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 flex justify-around items-center pt-3 pb-6 px-4 z-[60] md:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.04)] print:hidden">
-          <button onClick={() => {setRecipe(null); setActiveTab('create')}} className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'create' ? 'text-nonno-500' : 'text-stone-300'}`}>
+          <button onClick={() => {setRecipe(null); setActiveTab('create')}} className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'create' ? 'text-nonno-600' : 'text-stone-300'}`}>
             <PlusCircle size={28} strokeWidth={activeTab === 'create' ? 2.5 : 2} />
             <span className={`text-[10px] font-bold uppercase tracking-widest ${activeTab === 'create' ? 'text-nonno-800' : 'text-stone-400'}`}>Nuova</span>
           </button>

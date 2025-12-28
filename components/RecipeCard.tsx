@@ -27,10 +27,10 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
     e.preventDefault();
     e.stopPropagation();
     
-    const shareUrl = window.location.origin + window.location.pathname;
+    const shareUrl = window.location.href;
     const shareData = {
       title: `NonnoWeb - ${recipe.recipeName}`,
-      text: `Nipote caro, guarda che delizia ho preparato: ${recipe.recipeName}`,
+      text: `Nipote, guarda questa ricetta deliziosa: ${recipe.recipeName}`,
       url: shareUrl
     };
 
@@ -38,22 +38,21 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        throw new Error('Web Share not supported');
+        throw new Error('Share non supportato');
       }
     } catch (err) {
-      // Fallback: Copia manuale
+      // Fallback: Copia negli appunti
       try {
         await navigator.clipboard.writeText(shareUrl);
-        alert("Nipote, il tuo telefono non supporta la condivisione rapida, ma ho copiato il link per te negli appunti!");
+        alert("Nipote caro, ho copiato il link della ricetta negli appunti per te!");
       } catch (copyErr) {
-        // Fallback estremo per vecchi browser
         const textArea = document.createElement("textarea");
         textArea.value = shareUrl;
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert("Nipote, ho copiato il link della ricetta. Incollalo pure ai tuoi amici!");
+        alert("Ho copiato il link! Invialo pure ai tuoi amici.");
       }
     }
   };
@@ -64,12 +63,12 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
         id="printable-recipe-content" 
         className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-stone-100 flex flex-col print:shadow-none print:border-none print:rounded-none"
       >
-        {/* Banner Immagine */}
         <div className="relative w-full h-[250px] sm:h-[400px] print:h-[250px]">
           <img 
-            src={`https://image.pollinations.ai/prompt/professional food photography of ${encodeURIComponent(recipe.recipeName)}, gourmet style, warm lighting?width=1200&height=800&nologo=true`} 
+            src={`https://image.pollinations.ai/prompt/professional food photography of ${encodeURIComponent(recipe.recipeName)}, gourmet style?width=1200&height=800&nologo=true`} 
             alt={recipe.recipeName}
             className="w-full h-full object-cover"
+            crossOrigin="anonymous"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent print:hidden"></div>
           
@@ -87,13 +86,12 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
             </div>
           </div>
 
-          {/* Bottoni Navigazione Web */}
           <div className="absolute top-6 left-6 right-6 flex justify-between items-start print:hidden">
-            <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white transition-all active:scale-90">
+            <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all">
               <ArrowLeft size={20} className="text-stone-700" />
             </button>
             <div className="flex gap-2">
-              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white transition-all active:scale-90">
+              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all">
                 <Share2 size={20} className="text-stone-700" />
               </button>
               {isLoggedIn && onSave && (
@@ -108,7 +106,6 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
           </div>
         </div>
 
-        {/* Contenuto Testuale */}
         <div className="p-6 sm:p-12 space-y-12 bg-white">
           <div className="text-center max-w-2xl mx-auto space-y-4">
              <div className="w-16 h-16 bg-nonno-50 rounded-full flex items-center justify-center mx-auto border border-nonno-100">
@@ -182,7 +179,6 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
         </div>
       </div>
 
-      {/* Floating Action Bar */}
       <div className="fixed bottom-8 left-4 right-4 flex gap-3 print:hidden md:max-w-md md:mx-auto z-[80] no-print">
         <button 
           onClick={onReset} 
