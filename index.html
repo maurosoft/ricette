@@ -60,26 +60,29 @@
     
     body { background: white !important; }
     
-    /* Nascondi tutto tranne il contenuto della ricetta */
-    body > *:not(#root) { display: none !important; }
-    #root > *:not(main) { display: none !important; }
-    header, footer, nav, button, .no-print, .fixed, .membership-cta { 
+    /* Nascondi tutto ciò che non è la ricetta */
+    header, footer, nav, button, .no-print, .fixed, .membership-cta, .auth-modal, .membership-modal { 
       display: none !important; 
     }
     
-    #root main > *:not(#printable-recipe-content) {
-      display: none !important;
-    }
+    #root { display: block !important; }
+    main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
 
+    /* Forza visibilità contenuto */
     #printable-recipe-content {
       display: block !important;
+      visibility: visible !important;
       position: relative !important;
       width: 100% !important;
       box-shadow: none !important;
       border: none !important;
-      margin: 0 !important;
       padding: 0 !important;
-      visibility: visible !important;
+      margin: 0 !important;
+      overflow: visible !important;
+    }
+
+    #root main > div:not(#printable-recipe-content) {
+      display: none !important;
     }
 
     * {
@@ -88,7 +91,6 @@
     }
   }
 
-  /* Custom Scrollbar per Membership Modal */
   .custom-scrollbar::-webkit-scrollbar { width: 6px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
@@ -101,6 +103,7 @@
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+    <script type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

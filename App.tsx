@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChefHat, Loader2, UtensilsCrossed, User as UserIcon, Book, LogOut, Sparkles, ShieldAlert, X, ShieldCheck, Heart, Coffee, PlusCircle, LayoutGrid } from 'lucide-react';
+import { ChefHat, Loader2, User as UserIcon, Book, LogOut, Sparkles, ShieldAlert, X, ShieldCheck, Heart, Coffee, PlusCircle } from 'lucide-react';
 import IngredientSelector from './components/IngredientSelector';
 import Preferences from './components/Preferences';
 import RecipeCard from './components/RecipeCard';
@@ -10,7 +10,7 @@ import History from './components/History';
 import AdminPanel from './components/AdminPanel';
 import { generateRecipe } from './services/geminiService';
 import { storageService } from './services/storageService';
-import { RecipeRequest, RecipeResponse, CourseType, User, MembershipType, MembershipPlan } from './types';
+import { RecipeRequest, RecipeResponse, CourseType, User } from './types';
 
 const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -24,7 +24,6 @@ const App: React.FC = () => {
   const [lastRequest, setLastRequest] = useState<RecipeRequest | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Form states
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [customIngredients, setCustomIngredients] = useState('');
   const [mealType, setMealType] = useState<'pranzo' | 'cena'>('pranzo');
@@ -66,14 +65,6 @@ const App: React.FC = () => {
     }
   };
 
-  const isMembershipExpired = () => {
-    if (!currentUser) return true;
-    if (currentUser.role === 'admin') return false;
-    if (currentUser.membership === 'lifetime') return false;
-    if (!currentUser.expiryDate) return true;
-    return Date.now() > currentUser.expiryDate;
-  };
-
   const handleGenerate = async () => {
     if (!currentUser) {
       const freeUsed = localStorage.getItem('nonnoweb_free_used');
@@ -82,10 +73,6 @@ const App: React.FC = () => {
         setShowAuthModal(true);
         return;
       }
-    } else if (isMembershipExpired()) {
-      setError("La tua membership è scaduta. Sostieni il Nonno per continuare!");
-      setShowMembershipModal(true);
-      return;
     }
 
     if (selectedIngredients.length === 0 && !customIngredients.trim()) {
@@ -115,7 +102,7 @@ const App: React.FC = () => {
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      setError("C'è stato un piccolo intoppo in cucina. Riprova.");
+      setError("C'è stato un intoppo in cucina. Riprova più tardi.");
     } finally {
       setLoading(false);
     }
@@ -172,22 +159,22 @@ const App: React.FC = () => {
       {/* MOBILE BOTTOM NAV - Fedele allo screenshot */}
       {currentUser && (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 flex justify-around items-center pt-3 pb-6 px-4 z-[60] md:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.04)] print:hidden">
-          <button onClick={() => {setRecipe(null); setActiveTab('create')}} className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'create' ? 'text-nonno-600' : 'text-stone-300'}`}>
-            <PlusCircle size={26} strokeWidth={activeTab === 'create' ? 2.5 : 2} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Nuova</span>
+          <button onClick={() => {setRecipe(null); setActiveTab('create')}} className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'create' ? 'text-nonno-500' : 'text-stone-300'}`}>
+            <PlusCircle size={28} strokeWidth={activeTab === 'create' ? 2.5 : 2} />
+            <span className={`text-[10px] font-bold uppercase tracking-widest ${activeTab === 'create' ? 'text-nonno-800' : 'text-stone-400'}`}>Nuova</span>
           </button>
           <button onClick={() => {setRecipe(null); setActiveTab('history')}} className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'history' ? 'text-nonno-600' : 'text-stone-300'}`}>
-            <Book size={26} strokeWidth={activeTab === 'history' ? 2.5 : 2} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">I Miei Piatti</span>
+            <Book size={28} strokeWidth={activeTab === 'history' ? 2.5 : 2} className={activeTab === 'history' ? 'fill-nonno-50' : ''} />
+            <span className={`text-[10px] font-bold uppercase tracking-widest ${activeTab === 'history' ? 'text-nonno-800' : 'text-stone-400'}`}>I Miei Piatti</span>
           </button>
           {currentUser.role === 'admin' && (
             <button onClick={() => {setRecipe(null); setActiveTab('admin')}} className={`flex flex-col items-center gap-1.5 transition-colors ${activeTab === 'admin' ? 'text-stone-600' : 'text-stone-300'}`}>
-              <ShieldCheck size={26} strokeWidth={activeTab === 'admin' ? 2.5 : 2} />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Admin</span>
+              <ShieldCheck size={28} />
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${activeTab === 'admin' ? 'text-stone-800' : 'text-stone-400'}`}>Admin</span>
             </button>
           )}
           <button onClick={handleLogout} className="flex flex-col items-center gap-1.5 text-stone-300">
-            <LogOut size={26} />
+            <LogOut size={28} />
             <span className="text-[10px] font-bold uppercase tracking-widest">Esci</span>
           </button>
         </nav>
@@ -235,7 +222,7 @@ const App: React.FC = () => {
               <div className="max-w-3xl mx-auto space-y-12">
                 <div className="text-center space-y-3">
                   <h2 className="text-4xl font-serif font-bold text-stone-800">Le Tue Ricette</h2>
-                  <p className="text-stone-500 font-medium">Tutte le delizie create con NonnoWeb.</p>
+                  <p className="text-stone-500 font-medium italic">Tutte le delizie create con NonnoWeb.</p>
                 </div>
                 <History recipes={currentUser?.savedRecipes || []} onSelect={(r) => {setRecipe(r); setActiveTab('create')}} onDelete={handleDeleteRecipe} />
               </div>

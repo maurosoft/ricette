@@ -17,90 +17,101 @@ interface Props {
 
 const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, isSaved, isLoggedIn }) => {
   
-  // Funzione di stampa sicura
   const handlePrint = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     window.print();
   };
 
-  // Funzione di condivisione sicura
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    const shareUrl = window.location.origin + window.location.pathname;
     const shareData = {
-      title: `Ricetta NonnoWeb: ${recipe.recipeName}`,
-      text: `Nipote caro, guarda che bontà ho preparato oggi!`,
-      url: window.location.href
+      title: `NonnoWeb - ${recipe.recipeName}`,
+      text: `Nipote caro, guarda che delizia ho preparato: ${recipe.recipeName}`,
+      url: shareUrl
     };
 
     try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        const tempInput = document.createElement('input');
-        tempInput.value = window.location.href;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-        alert("Nipote, ho copiato il link negli appunti per te!");
+        throw new Error('Web Share not supported');
       }
     } catch (err) {
-      console.error("Errore condivisione:", err);
+      // Fallback: Copia manuale
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("Nipote, il tuo telefono non supporta la condivisione rapida, ma ho copiato il link per te negli appunti!");
+      } catch (copyErr) {
+        // Fallback estremo per vecchi browser
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert("Nipote, ho copiato il link della ricetta. Incollalo pure ai tuoi amici!");
+      }
     }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto animate-slide-up pb-10 px-2 sm:px-4">
+    <div className="w-full max-w-4xl mx-auto animate-slide-up pb-20 px-2 sm:px-4">
       <div 
         id="printable-recipe-content" 
         className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-stone-100 flex flex-col print:shadow-none print:border-none print:rounded-none"
       >
-        <div className="relative w-full h-[250px] sm:h-[400px] print:h-[200px]">
+        {/* Banner Immagine */}
+        <div className="relative w-full h-[250px] sm:h-[400px] print:h-[250px]">
           <img 
-            src={`https://image.pollinations.ai/prompt/professional food photography of ${encodeURIComponent(recipe.recipeName)}, traditional italian kitchen background?width=1200&height=800&model=flux&nologo=true`} 
+            src={`https://image.pollinations.ai/prompt/professional food photography of ${encodeURIComponent(recipe.recipeName)}, gourmet style, warm lighting?width=1200&height=800&nologo=true`} 
             alt={recipe.recipeName}
             className="w-full h-full object-cover"
-            crossOrigin="anonymous"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent print:hidden"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent print:hidden"></div>
           
-          <div className="absolute bottom-6 left-6 right-6 text-white print:text-stone-900 print:static print:mt-6 print:p-0">
+          <div className="absolute bottom-6 left-6 right-6 text-white print:text-stone-900 print:static print:p-6">
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold mb-4 print:text-3xl leading-tight">
               {recipe.recipeName}
             </h1>
             <div className="flex flex-wrap gap-3 print:hidden">
-              <span className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+              <span className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
                 <Users size={14} className="inline mr-2" /> {requestDetails?.peopleCount || 2} Persone
               </span>
-              <span className="bg-nonno-500 text-nonno-950 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+              <span className="bg-nonno-500 text-nonno-950 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
                 <TimerIcon size={14} className="inline mr-2" /> {recipe.prepTimeMinutes} Minuti
               </span>
             </div>
           </div>
 
+          {/* Bottoni Navigazione Web */}
           <div className="absolute top-6 left-6 right-6 flex justify-between items-start print:hidden">
-            <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg border border-stone-100 active:scale-90 transition-all">
+            <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white transition-all active:scale-90">
               <ArrowLeft size={20} className="text-stone-700" />
             </button>
             <div className="flex gap-2">
-              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg border border-stone-100 active:scale-90 transition-all">
+              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white transition-all active:scale-90">
                 <Share2 size={20} className="text-stone-700" />
               </button>
               {isLoggedIn && onSave && (
                 <button 
                   onClick={() => onSave(recipe)} 
-                  className={`p-3 rounded-full font-bold shadow-lg border transition-all active:scale-90 ${isSaved ? 'bg-nonno-600 text-white border-nonno-700' : 'bg-white/95 border-stone-100'}`}
+                  className={`p-3 rounded-full font-bold shadow-lg transition-all active:scale-90 border-2 ${isSaved ? 'bg-nonno-600 text-white border-nonno-600' : 'bg-white/95 border-white text-stone-700'}`}
                 >
-                  {isSaved ? <BookmarkCheck size={20} /> : <Bookmark size={20} className="text-stone-700" />}
+                  {isSaved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
                 </button>
               )}
             </div>
           </div>
         </div>
 
+        {/* Contenuto Testuale */}
         <div className="p-6 sm:p-12 space-y-12 bg-white">
-          <div className="text-center max-w-2xl mx-auto flex flex-col items-center gap-4">
-             <div className="w-16 h-16 bg-nonno-50 border border-nonno-100 rounded-full flex items-center justify-center">
+          <div className="text-center max-w-2xl mx-auto space-y-4">
+             <div className="w-16 h-16 bg-nonno-50 rounded-full flex items-center justify-center mx-auto border border-nonno-100">
                 <ChefHat className="text-nonno-500" size={32} />
              </div>
              <p className="text-xl sm:text-2xl text-stone-600 italic font-serif leading-relaxed px-4">
@@ -119,7 +130,7 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
               </div>
               <ul className="space-y-3">
                 {recipe.ingredientsList.map((ing, idx) => (
-                  <li key={idx} className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-stone-100 shadow-sm">
+                  <li key={idx} className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl border border-stone-100 shadow-sm">
                     <div className="w-2.5 h-2.5 rounded-full bg-nonno-500 shrink-0" />
                     <span className="text-base font-bold text-stone-700">{ing}</span>
                   </li>
@@ -138,7 +149,7 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
               <div className="space-y-8">
                 {recipe.steps.map((step, idx) => (
                   <div key={idx} className="flex gap-5 items-start">
-                    <div className="shrink-0 w-11 h-11 bg-stone-900 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-[0_5px_15px_rgba(0,0,0,0.2)]">
+                    <div className="shrink-0 w-11 h-11 bg-stone-900 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg">
                       {idx + 1}
                     </div>
                     <p className="text-stone-700 leading-relaxed text-base pt-1 font-medium">
@@ -171,6 +182,7 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
         </div>
       </div>
 
+      {/* Floating Action Bar */}
       <div className="fixed bottom-8 left-4 right-4 flex gap-3 print:hidden md:max-w-md md:mx-auto z-[80] no-print">
         <button 
           onClick={onReset} 
@@ -180,13 +192,13 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
         </button>
         <button 
           onClick={handlePrint} 
-          className="flex-[2] bg-stone-900 text-white py-4 rounded-2xl font-black text-xs uppercase shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 border border-stone-800"
+          className="flex-[2] bg-stone-900 text-white py-4 rounded-2xl font-black text-xs uppercase shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 border border-stone-800 hover:bg-black"
         >
           <Printer size={18} /> STAMPA RICETTA
         </button>
         <button 
           onClick={handleShare} 
-          className="bg-nonno-600 text-white p-4 rounded-2xl font-black shadow-2xl active:scale-95 transition-all border border-nonno-700"
+          className="bg-nonno-600 text-white p-4 rounded-2xl font-black shadow-2xl active:scale-95 transition-all border border-nonno-600 hover:bg-nonno-700"
         >
           <Share2 size={24} />
         </button>
