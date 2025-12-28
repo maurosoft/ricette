@@ -25,75 +25,120 @@ const DEFAULT_PLANS: MembershipPlan[] = [
 
 export const storageService = {
   async getUsers(): Promise<User[]> {
-    const data = localStorage.getItem(USERS_KEY);
-    if (!data) {
-      const initial = [INITIAL_ADMIN];
-      localStorage.setItem(USERS_KEY, JSON.stringify(initial));
-      return initial;
+    try {
+      const data = localStorage.getItem(USERS_KEY);
+      if (!data) {
+        const initial = [INITIAL_ADMIN];
+        localStorage.setItem(USERS_KEY, JSON.stringify(initial));
+        return initial;
+      }
+      return JSON.parse(data);
+    } catch (e) {
+      console.error("Errore lettura utenti:", e);
+      return [INITIAL_ADMIN];
     }
-    return JSON.parse(data);
   },
 
   async saveUser(user: User): Promise<void> {
-    const users = await this.getUsers();
-    const index = users.findIndex(u => u.id === user.id);
-    if (index > -1) {
-      users[index] = user;
-    } else {
-      users.push(user);
+    try {
+      const users = await this.getUsers();
+      const index = users.findIndex(u => u.id === user.id);
+      if (index > -1) {
+        users[index] = user;
+      } else {
+        users.push(user);
+      }
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    } catch (e) {
+      console.error("Errore salvataggio utente:", e);
     }
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  },
+
+  updateSession(user: User): void {
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    } catch (e) {
+      console.error("Errore aggiornamento sessione:", e);
+    }
   },
 
   async deleteUser(userId: string): Promise<void> {
-    const users = await this.getUsers();
-    const filtered = users.filter(u => u.id !== userId);
-    localStorage.setItem(USERS_KEY, JSON.stringify(filtered));
+    try {
+      const users = await this.getUsers();
+      const filtered = users.filter(u => u.id !== userId);
+      localStorage.setItem(USERS_KEY, JSON.stringify(filtered));
+    } catch (e) {
+      console.error("Errore eliminazione utente:", e);
+    }
   },
 
   async getPlans(): Promise<MembershipPlan[]> {
-    const data = localStorage.getItem(PLANS_KEY);
-    if (!data) {
-      localStorage.setItem(PLANS_KEY, JSON.stringify(DEFAULT_PLANS));
+    try {
+      const data = localStorage.getItem(PLANS_KEY);
+      if (!data) {
+        localStorage.setItem(PLANS_KEY, JSON.stringify(DEFAULT_PLANS));
+        return DEFAULT_PLANS;
+      }
+      return JSON.parse(data);
+    } catch (e) {
       return DEFAULT_PLANS;
     }
-    return JSON.parse(data);
   },
 
   async savePlans(plans: MembershipPlan[]): Promise<void> {
-    localStorage.setItem(PLANS_KEY, JSON.stringify(plans));
+    try {
+      localStorage.setItem(PLANS_KEY, JSON.stringify(plans));
+    } catch (e) {
+      console.error("Errore salvataggio piani:", e);
+    }
   },
 
   async login(email: string, pass: string): Promise<User | string> {
-    const users = await this.getUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === pass);
-    
-    if (!user) return "Credenziali non valide.";
-    if (!user.isActive) return "Il tuo account è disattivato. Contatta l'amministratore.";
-    
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    return user;
+    try {
+      const users = await this.getUsers();
+      const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === pass);
+      
+      if (!user) return "Credenziali non valide.";
+      if (!user.isActive) return "Il tuo account è disattivato. Contatta l'amministratore.";
+      
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      return user;
+    } catch (e) {
+      return "Errore durante l'accesso al sistema.";
+    }
   },
 
   getCurrentSession(): User | null {
-    const data = localStorage.getItem(SESSION_KEY);
-    return data ? JSON.parse(data) : null;
+    try {
+      const data = localStorage.getItem(SESSION_KEY);
+      if (!data) return null;
+      return JSON.parse(data);
+    } catch (e) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
   },
 
   logout(): void {
-    localStorage.removeItem(SESSION_KEY);
+    try {
+      localStorage.removeItem(SESSION_KEY);
+    } catch (e) {
+      console.error("Errore logout:", e);
+    }
   },
 
   getExpiryDate(membership: MembershipType): number | undefined {
-    const now = Date.now();
-    const day = 24 * 60 * 60 * 1000;
-    
-    // Recuperiamo i piani per sapere la durata esatta impostata dall'admin
-    const plansStr = localStorage.getItem(PLANS_KEY);
-    const plans: MembershipPlan[] = plansStr ? JSON.parse(plansStr) : DEFAULT_PLANS;
-    const plan = plans.find(p => p.id === membership);
-    
-    if (!plan || plan.durationDays === 0) return undefined;
-    return now + plan.durationDays * day;
+    try {
+      const now = Date.now();
+      const day = 24 * 60 * 60 * 1000;
+      const plansStr = localStorage.getItem(PLANS_KEY);
+      const plans: MembershipPlan[] = plansStr ? JSON.parse(plansStr) : DEFAULT_PLANS;
+      const plan = plans.find(p => p.id === membership);
+      
+      if (!plan || plan.durationDays === 0) return undefined;
+      return now + plan.durationDays * day;
+    } catch (e) {
+      return undefined;
+    }
   }
 };

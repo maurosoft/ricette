@@ -3,7 +3,7 @@ import React from 'react';
 import { RecipeResponse, RecipeRequest } from '../types';
 import { 
   Wine, ChefHat, Sparkles, Printer, ArrowLeft, 
-  Bookmark, BookmarkCheck, Users, Utensils, Soup, Timer as TimerIcon, Share2
+  Bookmark, BookmarkCheck, Users, Utensils, Soup, Timer as TimerIcon, Share2, Trash2
 } from 'lucide-react';
 
 interface Props {
@@ -11,11 +11,12 @@ interface Props {
   requestDetails?: RecipeRequest;
   onReset: () => void;
   onSave?: (recipe: RecipeResponse) => void;
+  onDelete?: (id: string) => void;
   isSaved?: boolean;
   isLoggedIn?: boolean;
 }
 
-const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, isSaved, isLoggedIn }) => {
+const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, onDelete, isSaved, isLoggedIn }) => {
   
   const handlePrint = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -41,24 +42,44 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
         throw new Error('Web Share non supportato');
       }
     } catch (err) {
-      // Fallback: Copia negli appunti
       try {
         await navigator.clipboard.writeText(shareUrl);
-        alert("Nipote caro, ho copiato il link della ricetta negli appunti per te! Incollalo dove vuoi.");
+        alert("Nipote caro, ho copiato il link della ricetta negli appunti per te!");
       } catch (copyErr) {
-        const textArea = document.createElement("textarea");
-        textArea.value = shareUrl;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        alert("Link copiato! Invialo pure ai tuoi amici.");
+        alert("Non riesco a copiare il link, prova a scrivertelo su un pezzetto di carta!");
       }
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    // Cruciale: prevenire ogni altra azione del browser o risalita dell'evento
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Cerchiamo l'ID in ogni modo possibile, assicurandoci che sia una stringa
+    const idToDelete = String(recipe.id || "");
+    
+    if (idToDelete && onDelete) {
+      const confirmed = window.confirm(`Nipote caro, vuoi davvero eliminare la ricetta "${recipe.recipeName}" dal tuo ricettario personale? Non potrò più recuperarla!`);
+      if (confirmed) {
+        onDelete(idToDelete);
+      }
+    } else {
+      console.error("Errore: ID ricetta non trovato per la cancellazione", recipe);
+      alert("Nipote, c'è un problema con questa ricetta, il Nonno non riesce a trovarne il codice segreto per cancellarla!");
+    }
+  };
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onSave) {
+      onSave(recipe);
+    }
+  };
+
   return (
-    <div className="w-full max-w-4xl mx-auto animate-slide-up pb-20 px-2 sm:px-4">
+    <div className="w-full max-w-4xl mx-auto animate-slide-up pb-40 md:pb-20 px-2 sm:px-4">
       <div 
         id="printable-recipe-content" 
         className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-stone-100 flex flex-col print:shadow-none print:border-none print:rounded-none"
@@ -86,21 +107,41 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
             </div>
           </div>
 
-          <div className="absolute top-6 left-6 right-6 flex justify-between items-start print:hidden">
-            <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all">
+          <div className="absolute top-6 left-6 right-6 flex justify-between items-start print:hidden z-[150]">
+            <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all pointer-events-auto">
               <ArrowLeft size={20} className="text-stone-700" />
             </button>
             <div className="flex gap-2">
-              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all">
+              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all pointer-events-auto">
                 <Share2 size={20} className="text-stone-700" />
               </button>
-              {isLoggedIn && onSave && (
-                <button 
-                  onClick={() => onSave(recipe)} 
-                  className={`p-3 rounded-full font-bold shadow-lg transition-all active:scale-90 border-2 ${isSaved ? 'bg-nonno-600 text-white border-nonno-600' : 'bg-white/95 border-white text-stone-700'}`}
-                >
-                  {isSaved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
-                </button>
+              
+              {isLoggedIn && (
+                <div className="flex gap-2 items-center">
+                  {!isSaved ? (
+                    <button 
+                      onClick={handleSave} 
+                      className="p-3 rounded-full font-bold shadow-lg transition-all active:scale-90 border-2 bg-white/95 border-white text-stone-700 hover:text-nonno-600 hover:scale-110 pointer-events-auto"
+                      title="Salva nel Ricettario"
+                    >
+                      <Bookmark size={20} />
+                    </button>
+                  ) : (
+                    <div className="flex gap-2 items-center bg-white/90 p-1.5 rounded-full shadow-lg border border-white/50 backdrop-blur-sm">
+                      <div className="bg-green-600 text-white p-2.5 rounded-full flex items-center justify-center shadow-inner" title="Ricetta Salvata">
+                        <BookmarkCheck size={18} />
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={handleDelete} 
+                        className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-700 transition-all active:scale-90 hover:scale-110 flex items-center justify-center shadow-md cursor-pointer z-[200] relative pointer-events-auto"
+                        title="Rimuovi dal Ricettario"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -179,7 +220,7 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
         </div>
       </div>
 
-      <div className="fixed bottom-8 left-4 right-4 flex gap-3 print:hidden md:max-w-md md:mx-auto z-[80] no-print">
+      <div className="fixed bottom-32 md:bottom-10 left-4 right-4 flex gap-3 print:hidden md:max-w-md md:mx-auto z-[120] no-print animate-fade-in">
         <button 
           onClick={onReset} 
           className="flex-1 bg-white text-stone-600 py-4 rounded-2xl font-black text-xs uppercase shadow-2xl border border-stone-200 active:scale-95 transition-all"
@@ -190,13 +231,7 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
           onClick={handlePrint} 
           className="flex-[2] bg-stone-900 text-white py-4 rounded-2xl font-black text-xs uppercase shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 border border-stone-800 hover:bg-black"
         >
-          <Printer size={18} /> STAMPA RICETTA
-        </button>
-        <button 
-          onClick={handleShare} 
-          className="bg-nonno-600 text-white p-4 rounded-2xl font-black shadow-2xl active:scale-95 transition-all border border-nonno-600 hover:bg-nonno-700"
-        >
-          <Share2 size={24} />
+          <Printer size={18} /> STAMPA
         </button>
       </div>
     </div>

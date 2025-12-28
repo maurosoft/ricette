@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, UserPlus, ShieldCheck, 
   Calendar, Trash2, X, Search, Mail, Power,
-  CreditCard, Link as LinkIcon, Info, List, Save, Sparkles
+  CreditCard, Link as LinkIcon, Info, List, Save, Sparkles, LogOut, ArrowLeft, Home
 } from 'lucide-react';
 import { User, MembershipType, MembershipPlan } from '../types';
 import { storageService } from '../services/storageService';
@@ -13,9 +13,10 @@ interface Props {
   onAddUser: (user: Partial<User>) => void;
   onUpdateUser: (userId: string, updates: Partial<User>) => void;
   onDeleteUser: (userId: string) => void;
+  onLogout: () => void;
 }
 
-const AdminPanel: React.FC<Props> = ({ users, onAddUser, onUpdateUser, onDeleteUser }) => {
+const AdminPanel: React.FC<Props> = ({ users, onAddUser, onUpdateUser, onDeleteUser, onLogout }) => {
   const [activeSubTab, setActiveSubTab] = useState<'users' | 'plans'>('users');
   const [isAdding, setIsAdding] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,14 +61,14 @@ const AdminPanel: React.FC<Props> = ({ users, onAddUser, onUpdateUser, onDeleteU
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.username.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = (users || []).filter(u => 
+    u?.email?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    u?.username?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-20 px-2 sm:px-4">
-      {/* Header Pannello */}
+      {/* Header Pannello con tasti navigazione e logout */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 sm:p-8 rounded-[2.5rem] shadow-sm border border-stone-100">
         <div className="flex items-center gap-5">
           <div className="bg-red-50 p-4 rounded-3xl text-red-600 shadow-inner">
@@ -79,19 +80,36 @@ const AdminPanel: React.FC<Props> = ({ users, onAddUser, onUpdateUser, onDeleteU
           </div>
         </div>
         
-        <div className="flex bg-stone-100 p-1.5 rounded-2xl">
-          <button 
-            onClick={() => setActiveSubTab('users')} 
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm ${activeSubTab === 'users' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
-          >
-            <Users size={18} /> Utenti
-          </button>
-          <button 
-            onClick={() => setActiveSubTab('plans')} 
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm ${activeSubTab === 'plans' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
-          >
-            <CreditCard size={18} /> Prezzi
-          </button>
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex bg-stone-100 p-1.5 rounded-2xl">
+            <button 
+              onClick={() => setActiveSubTab('users')} 
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm ${activeSubTab === 'users' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
+            >
+              <Users size={18} /> Utenti
+            </button>
+            <button 
+              onClick={() => setActiveSubTab('plans')} 
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm ${activeSubTab === 'plans' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
+            >
+              <CreditCard size={18} /> Prezzi
+            </button>
+          </div>
+          
+          <div className="flex gap-2">
+            <button 
+              onClick={() => { 
+                // Forza un click sul logo per tornare alla cucina senza logout
+                window.location.hash = ""; 
+                window.scrollTo(0,0);
+                onLogout(); // Qui usiamo onLogout come trigger per resettare lo stato admin in App.tsx
+              }} 
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-stone-600 hover:bg-stone-50 transition-all text-sm"
+              title="Esci dall'Admin"
+            >
+              <Home size={18} /> Esci
+            </button>
+          </div>
         </div>
       </div>
 

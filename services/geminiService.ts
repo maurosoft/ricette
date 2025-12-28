@@ -2,7 +2,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { RecipeRequest, RecipeResponse } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAI = () => {
+  const apiKey = process.env.API_KEY || "";
+  return new GoogleGenAI({ apiKey });
+};
 
 const recipeSchema = {
   type: Type.OBJECT,
@@ -28,6 +31,7 @@ const recipeSchema = {
 };
 
 export const generateRecipe = async (request: RecipeRequest): Promise<RecipeResponse> => {
+  const ai = getAI();
   const ingredients = [...request.selectedIngredients];
   if (request.customIngredients.trim()) {
     ingredients.push(request.customIngredients);
