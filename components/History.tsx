@@ -12,18 +12,13 @@ interface Props {
 const History: React.FC<Props> = ({ recipes, onSelect, onDelete }) => {
   
   const handleDeleteClick = (e: React.MouseEvent, id: string, name: string) => {
-    // Impediamo che cliccando sul cestino si apra la ricetta
+    // FONDAMENTALE: Impediamo che il click arrivi al contenitore della ricetta
     e.preventDefault();
     e.stopPropagation();
     
-    if (!id) {
-      console.error("ID ricetta mancante in History");
-      return;
-    }
+    if (!id) return;
 
-    const confirmed = window.confirm(`Nipote caro, vuoi davvero eliminare la ricetta "${name}"? Non potrò più recuperarla!`);
-    
-    if (confirmed) {
+    if (window.confirm(`Nipote caro, vuoi davvero buttare via la ricetta "${name}"? Il Nonno non potrà più recuperarla!`)) {
       onDelete(String(id));
     }
   };
@@ -31,26 +26,25 @@ const History: React.FC<Props> = ({ recipes, onSelect, onDelete }) => {
   if (recipes.length === 0) {
     return (
       <div className="text-center py-28 bg-white/40 rounded-[3rem] border-4 border-dashed border-nonno-200 animate-fade-in">
-        <div className="bg-nonno-100 w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-          <Book size={56} className="text-nonno-600" />
+        <div className="bg-nonno-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <Book size={48} className="text-nonno-600" />
         </div>
-        <h3 className="text-3xl font-serif font-bold text-nonno-900">Ricettario ancora vuoto</h3>
-        <p className="text-stone-500 mt-4 max-w-sm mx-auto text-lg leading-relaxed">Crea la tua prima delizia con il Nonno!</p>
+        <h3 className="text-2xl font-serif font-bold text-nonno-900">Ricettario ancora vuoto</h3>
+        <p className="text-stone-500 mt-3 max-w-sm mx-auto font-medium">Crea la tua prima delizia con il Nonno!</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-5 px-1 sm:px-0 pb-12 animate-fade-in">
+    <div className="flex flex-col gap-4 pb-12 animate-fade-in">
       {recipes.map((recipe) => (
         <div 
           key={String(recipe.id || Math.random())}
           onClick={() => onSelect(recipe)}
-          className="bg-white rounded-[2.2rem] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-stone-50 hover:border-nonno-200 transition-all group cursor-pointer relative overflow-hidden"
+          className="bg-white rounded-[2rem] p-3 shadow-sm border border-stone-100 hover:border-nonno-300 transition-all group cursor-pointer relative overflow-hidden active:scale-[0.98]"
         >
-          <div className="flex items-center gap-5 sm:gap-6 relative z-10">
-            {/* Immagine a sinistra */}
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[1.8rem] overflow-hidden shrink-0 shadow-sm bg-stone-100 border-2 border-white">
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[1.5rem] overflow-hidden shrink-0 shadow-sm border-2 border-white">
               <img 
                 src={`https://image.pollinations.ai/prompt/gourmet food plate of ${encodeURIComponent(recipe.recipeName)}?width=400&height=400&nologo=true`} 
                 alt={recipe.recipeName}
@@ -58,36 +52,32 @@ const History: React.FC<Props> = ({ recipes, onSelect, onDelete }) => {
               />
             </div>
 
-            {/* Testi a destra */}
             <div className="flex-1 min-w-0 pr-12">
-              <h4 className="font-serif font-bold text-stone-900 text-lg sm:text-2xl leading-tight mb-2 line-clamp-2">
+              <h4 className="font-serif font-bold text-stone-800 text-lg sm:text-xl leading-tight mb-1 line-clamp-1">
                 {recipe.recipeName}
               </h4>
-              <div className="flex items-center gap-4 text-[10px] sm:text-xs font-black tracking-widest uppercase">
-                <span className="flex items-center gap-1.5 text-orange-500">
-                  <Clock size={16} strokeWidth={3} className="text-orange-500" />
+              <div className="flex items-center gap-3 text-[10px] font-black tracking-wider uppercase">
+                <span className="flex items-center gap-1 text-orange-500">
+                  <Clock size={14} strokeWidth={3} />
                   {recipe.prepTimeMinutes} MIN
                 </span>
-                <span className="text-stone-400 font-bold flex items-center gap-1.5">
-                  <Calendar size={14} className="text-stone-300" />
-                  {new Date(recipe.timestamp || Date.now()).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
+                <span className="text-stone-400 flex items-center gap-1">
+                  <Calendar size={12} />
+                  {new Date(recipe.timestamp || Date.now()).toLocaleDateString('it-IT')}
                 </span>
               </div>
             </div>
 
-            {/* Tasto Cancella - Rinforzato */}
+            {/* Tasto Cestino Rosso - Priorità Massima */}
             <button 
               type="button"
               onClick={(e) => handleDeleteClick(e, String(recipe.id), recipe.recipeName)}
-              className="absolute top-2 right-2 p-4 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-90 z-30 pointer-events-auto"
+              className="absolute top-1/2 -translate-y-1/2 right-3 p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all z-[100] cursor-pointer"
               title="Elimina Ricetta"
             >
-              <Trash2 size={24} />
+              <Trash2 size={22} />
             </button>
           </div>
-          
-          {/* Overlay sottile */}
-          <div className="absolute inset-0 bg-stone-900/0 group-hover:bg-stone-900/[0.01] transition-colors pointer-events-none" />
         </div>
       ))}
     </div>

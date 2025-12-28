@@ -27,116 +27,83 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const shareUrl = window.location.href;
-    const shareData = {
-      title: `NonnoWeb - ${recipe.recipeName}`,
-      text: `Nipote, guarda questa ricetta deliziosa: ${recipe.recipeName}`,
-      url: shareUrl
-    };
-
     try {
       if (navigator.share) {
-        await navigator.share(shareData);
+        await navigator.share({
+          title: `NonnoWeb - ${recipe.recipeName}`,
+          text: `Nipote, guarda questa ricetta: ${recipe.recipeName}`,
+          url: window.location.href
+        });
       } else {
-        throw new Error('Web Share non supportato');
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Link copiato!");
       }
-    } catch (err) {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        alert("Nipote caro, ho copiato il link della ricetta negli appunti per te!");
-      } catch (copyErr) {
-        alert("Non riesco a copiare il link, prova a scrivertelo su un pezzetto di carta!");
-      }
-    }
+    } catch (err) {}
   };
 
   const handleDelete = (e: React.MouseEvent) => {
-    // Cruciale: prevenire ogni altra azione del browser o risalita dell'evento
     e.preventDefault();
     e.stopPropagation();
     
     const idToDelete = String(recipe.id || "");
-    
     if (idToDelete && onDelete) {
-      const confirmed = window.confirm(`Nipote caro, vuoi davvero eliminare la ricetta "${recipe.recipeName}" dal tuo ricettario personale? Non potrò più recuperarla!`);
-      if (confirmed) {
+      if (window.confirm(`Nipote caro, vuoi davvero buttare via questa ricetta? Il Nonno non potrà più recuperarla!`)) {
         onDelete(idToDelete);
       }
-    } else {
-      console.error("ID ricetta mancante in RecipeCard");
-      alert("Nipote, c'è un problema con questa ricetta, il Nonno non riesce a trovarne il codice identificativo per cancellarla!");
-    }
-  };
-
-  const handleSave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onSave) {
-      onSave(recipe);
     }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto animate-slide-up pb-40 md:pb-20 px-2 sm:px-4">
-      <div 
-        id="printable-recipe-content" 
-        className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-stone-100 flex flex-col print:shadow-none print:border-none print:rounded-none"
-      >
-        <div className="relative w-full h-[250px] sm:h-[400px] print:h-[250px]">
+    <div className="w-full max-w-4xl mx-auto animate-slide-up pb-20 px-2 sm:px-4">
+      <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-stone-100 flex flex-col">
+        <div className="relative w-full h-[300px] sm:h-[450px]">
           <img 
-            src={`https://image.pollinations.ai/prompt/professional food photography of ${encodeURIComponent(recipe.recipeName)}, gourmet style?width=1200&height=800&nologo=true`} 
+            src={`https://image.pollinations.ai/prompt/gourmet food photography of ${encodeURIComponent(recipe.recipeName)}?width=1200&height=800&nologo=true`} 
             alt={recipe.recipeName}
             className="w-full h-full object-cover"
-            crossOrigin="anonymous"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent print:hidden"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
           
-          <div className="absolute bottom-6 left-6 right-6 text-white print:text-stone-900 print:static print:p-6">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold mb-4 print:text-3xl leading-tight">
-              {recipe.recipeName}
-            </h1>
-            <div className="flex flex-wrap gap-3 print:hidden">
-              <span className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-                <Users size={14} className="inline mr-2" /> {requestDetails?.peopleCount || 2} Persone
+          <div className="absolute bottom-8 left-8 right-8 text-white">
+            <h1 className="text-3xl sm:text-5xl font-serif font-bold mb-4 leading-tight">{recipe.recipeName}</h1>
+            <div className="flex gap-4">
+              <span className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <Users size={14} /> {requestDetails?.peopleCount || 2} Persone
               </span>
-              <span className="bg-nonno-500 text-nonno-950 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-                <TimerIcon size={14} className="inline mr-2" /> {recipe.prepTimeMinutes} Minuti
+              <span className="bg-nonno-500 text-nonno-950 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <TimerIcon size={14} /> {recipe.prepTimeMinutes} Minuti
               </span>
             </div>
           </div>
 
-          <div className="absolute top-6 left-6 right-6 flex justify-between items-start print:hidden z-[150]">
-            <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all pointer-events-auto">
-              <ArrowLeft size={20} className="text-stone-700" />
+          <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-[150]">
+            <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all">
+              <ArrowLeft size={22} className="text-stone-700" />
             </button>
-            <div className="flex gap-2">
-              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all pointer-events-auto">
-                <Share2 size={20} className="text-stone-700" />
+            <div className="flex gap-3">
+              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg text-stone-700 active:scale-90 transition-all">
+                <Share2 size={20} />
               </button>
-              
               {isLoggedIn && (
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                   {!isSaved ? (
                     <button 
-                      onClick={handleSave} 
-                      className="p-3 rounded-full font-bold shadow-lg transition-all active:scale-90 border-2 bg-white/95 border-white text-stone-700 hover:text-nonno-600 hover:scale-110 pointer-events-auto"
-                      title="Salva nel Ricettario"
+                      onClick={(e) => { e.stopPropagation(); onSave?.(recipe); }} 
+                      className="bg-white p-3 rounded-full shadow-lg text-stone-700 hover:text-nonno-600 transition-all hover:scale-110 active:scale-95"
                     >
-                      <Bookmark size={20} />
+                      <Bookmark size={22} />
                     </button>
                   ) : (
-                    <div className="flex gap-2 items-center bg-white/90 p-1.5 rounded-full shadow-lg border border-white/50 backdrop-blur-sm">
-                      <div className="bg-green-600 text-white p-2.5 rounded-full flex items-center justify-center shadow-inner" title="Ricetta Salvata">
-                        <BookmarkCheck size={18} />
+                    <div className="flex items-center gap-2 bg-white/95 p-1.5 rounded-full shadow-xl border border-white">
+                      <div className="bg-green-600 text-white p-2.5 rounded-full shadow-inner">
+                        <BookmarkCheck size={20} />
                       </div>
                       <button 
                         type="button"
                         onClick={handleDelete} 
-                        className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-700 transition-all active:scale-90 hover:scale-110 flex items-center justify-center shadow-md cursor-pointer z-[200] relative pointer-events-auto"
-                        title="Rimuovi dal Ricettario"
+                        className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-700 transition-all active:scale-95 hover:scale-110 shadow-md z-[200]"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={20} />
                       </button>
                     </div>
                   )}
@@ -146,93 +113,52 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
           </div>
         </div>
 
-        <div className="p-6 sm:p-12 space-y-12 bg-white">
-          <div className="text-center max-w-2xl mx-auto space-y-4">
-             <div className="w-16 h-16 bg-nonno-50 rounded-full flex items-center justify-center mx-auto border border-nonno-100">
-                <ChefHat className="text-nonno-500" size={32} />
-             </div>
-             <p className="text-xl sm:text-2xl text-stone-600 italic font-serif leading-relaxed px-4">
-               "{recipe.description}"
-             </p>
+        <div className="p-8 sm:p-12 space-y-12">
+          <div className="text-center max-w-2xl mx-auto">
+             <p className="text-xl sm:text-2xl text-stone-500 italic font-serif leading-relaxed">"{recipe.description}"</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="grid md:grid-cols-2 gap-12">
             <div className="space-y-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Utensils className="text-nonno-500" size={24} />
-                  <h3 className="text-xl font-serif font-bold text-stone-800 uppercase tracking-widest">Dispensa</h3>
-                </div>
-                <div className="h-2 w-full bg-nonno-500 rounded-full" />
-              </div>
-              <ul className="space-y-3">
+              <h3 className="text-xl font-serif font-bold text-stone-800 uppercase tracking-widest border-b-4 border-nonno-500 pb-2 inline-block">Dispensa</h3>
+              <ul className="space-y-4">
                 {recipe.ingredientsList.map((ing, idx) => (
-                  <li key={idx} className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl border border-stone-100 shadow-sm">
-                    <div className="w-2.5 h-2.5 rounded-full bg-nonno-500 shrink-0" />
-                    <span className="text-base font-bold text-stone-700">{ing}</span>
+                  <li key={idx} className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl border border-stone-100 font-bold text-stone-700">
+                    <div className="w-2 h-2 rounded-full bg-nonno-500" /> {ing}
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="space-y-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Soup className="text-stone-300" size={24} />
-                  <h3 className="text-xl font-serif font-bold text-stone-800 uppercase tracking-widest">In Cucina</h3>
-                </div>
-                <div className="h-2 w-full bg-stone-200 rounded-full" />
-              </div>
+              <h3 className="text-xl font-serif font-bold text-stone-800 uppercase tracking-widest border-b-4 border-stone-200 pb-2 inline-block">In Cucina</h3>
               <div className="space-y-8">
                 {recipe.steps.map((step, idx) => (
-                  <div key={idx} className="flex gap-5 items-start">
-                    <div className="shrink-0 w-11 h-11 bg-stone-900 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg">
-                      {idx + 1}
-                    </div>
-                    <p className="text-stone-700 leading-relaxed text-base pt-1 font-medium">
-                      {step}
-                    </p>
+                  <div key={idx} className="flex gap-5">
+                    <span className="shrink-0 w-10 h-10 bg-stone-900 text-white rounded-xl flex items-center justify-center font-bold shadow-md">{idx + 1}</span>
+                    <p className="text-stone-600 leading-relaxed font-medium pt-1">{step}</p>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-10 border-t border-stone-100">
-            <div className="bg-indigo-50/50 border border-indigo-100 rounded-[2rem] p-8">
-              <div className="flex items-center gap-3 mb-2">
-                <Wine className="text-indigo-600" size={24} />
-                <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Il Sommelier</h4>
-              </div>
-              <p className="text-lg font-bold text-indigo-900">{recipe.winePairing}</p>
-              <p className="text-xs text-indigo-800/70 italic mt-2">{recipe.winePairingReason}</p>
+          <div className="grid md:grid-cols-2 gap-6 pt-10 border-t border-stone-100">
+            <div className="bg-indigo-50/50 p-6 rounded-[2rem] border border-indigo-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-2 text-indigo-600 font-black text-[10px] uppercase tracking-widest"><Wine size={18} /> Sommelier</div>
+              <p className="font-bold text-indigo-900 text-lg">{recipe.winePairing}</p>
+              <p className="text-xs text-indigo-700/70 italic mt-2">{recipe.winePairingReason}</p>
             </div>
-
-            <div className="bg-amber-50/50 border border-amber-100 rounded-[2rem] p-8">
-              <div className="flex items-center gap-3 mb-2">
-                <Sparkles className="text-nonno-600" size={24} />
-                <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Il Segreto</h4>
-              </div>
-              <p className="text-stone-700 italic text-sm leading-relaxed">"{recipe.nonnoTip}"</p>
+            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-2 text-nonno-600 font-black text-[10px] uppercase tracking-widest"><Sparkles size={18} /> Il Segreto</div>
+              <p className="text-stone-600 italic text-sm">"{recipe.nonnoTip}"</p>
             </div>
           </div>
         </div>
       </div>
-
-      <div className="fixed bottom-32 md:bottom-10 left-4 right-4 flex gap-3 print:hidden md:max-w-md md:mx-auto z-[120] no-print animate-fade-in">
-        <button 
-          onClick={onReset} 
-          className="flex-1 bg-white text-stone-600 py-4 rounded-2xl font-black text-xs uppercase shadow-2xl border border-stone-200 active:scale-95 transition-all"
-        >
-          Indietro
-        </button>
-        <button 
-          onClick={handlePrint} 
-          className="flex-[2] bg-stone-900 text-white py-4 rounded-2xl font-black text-xs uppercase shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 border border-stone-800 hover:bg-black"
-        >
-          <Printer size={18} /> STAMPA
-        </button>
-      </div>
+      <button onClick={handlePrint} className="mt-8 w-full bg-stone-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl print:hidden">
+        <Printer size={20} /> Stampa Ricetta
+      </button>
     </div>
   );
 };
