@@ -38,13 +38,13 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        throw new Error('Share non supportato');
+        throw new Error('Web Share non supportato');
       }
     } catch (err) {
       // Fallback: Copia negli appunti
       try {
         await navigator.clipboard.writeText(shareUrl);
-        alert("Nipote caro, ho copiato il link della ricetta negli appunti per te!");
+        alert("Nipote caro, ho copiato il link della ricetta negli appunti per te! Incollalo dove vuoi.");
       } catch (copyErr) {
         const textArea = document.createElement("textarea");
         textArea.value = shareUrl;
@@ -52,7 +52,7 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert("Ho copiato il link! Invialo pure ai tuoi amici.");
+        alert("Link copiato! Invialo pure ai tuoi amici.");
       }
     }
   };

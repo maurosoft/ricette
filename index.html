@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <script>
+      // Shim per evitare pagina bianca dovuta a process.env mancante
+      window.process = { env: { API_KEY: "" } };
+      
       tailwind.config = {
         theme: {
           extend: {
@@ -51,7 +54,7 @@
     color: #1c1917;
   }
 
-  /* REGOLE DI STAMPA - INFALLIBILI */
+  /* REGOLE DI STAMPA - PULITE E FUNZIONANTI */
   @media print {
     @page { 
       margin: 1cm; 
@@ -60,7 +63,6 @@
     
     body { background: white !important; }
     
-    /* Nascondi tutto ciò che non è la ricetta */
     header, footer, nav, button, .no-print, .fixed, .membership-cta, .auth-modal, .membership-modal { 
       display: none !important; 
     }
@@ -68,7 +70,6 @@
     #root { display: block !important; }
     main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
 
-    /* Forza visibilità contenuto ricetta */
     #printable-recipe-content {
       display: block !important;
       visibility: visible !important;
@@ -103,7 +104,7 @@
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
   <script type="module" src="/index.tsx"></script>
 </body>
 </html>
