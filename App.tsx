@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChefHat, Loader2, User as UserIcon, Book, LogOut, Sparkles, ShieldAlert, X, ShieldCheck, Heart, Coffee, PlusCircle, CheckCircle2 } from 'lucide-react';
+import { ChefHat, Loader2, User as UserIcon, Book, LogOut, Sparkles, ShieldAlert, X, Heart, PlusCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 import IngredientSelector from './components/IngredientSelector';
 import Preferences from './components/Preferences';
 import RecipeCard from './components/RecipeCard';
@@ -12,7 +12,7 @@ import { generateRecipe } from './services/geminiService';
 import { storageService } from './services/storageService';
 import { RecipeRequest, RecipeResponse, CourseType, User } from './types';
 
-const APP_VERSION = "2.0.6-GOLD";
+const VERSION = "2.1.0-REVOLUTION";
 
 const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -43,7 +43,7 @@ const App: React.FC = () => {
         if (freshUser) setCurrentUser(freshUser);
       }
     } catch (err) {
-      console.error("Errore sincronizzazione dati:", err);
+      console.error("Sync error:", err);
     }
   }, []);
 
@@ -73,8 +73,7 @@ const App: React.FC = () => {
       setRecipe(newRecipe);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
-      console.error("Errore Generazione:", err);
-      setError(`Intoppo in cucina: ${err.message || "Problema con la API_KEY o connessione"}`);
+      setError(`Intoppo: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -97,7 +96,7 @@ const App: React.FC = () => {
     await storageService.saveUser(updatedUser);
     storageService.updateSession(updatedUser);
     setCurrentUser(updatedUser);
-    setRecipe(normalizedRecipe);
+    setRecipe(normalizedRecipe); // Aggiorna la vista corrente con l'ID finale
     await refreshData();
   };
 
@@ -113,14 +112,16 @@ const App: React.FC = () => {
     storageService.updateSession(updatedUser);
     setCurrentUser(updatedUser);
 
+    // Se la ricetta visualizzata è quella cancellata, chiudila
     if (recipe && String(recipe.id) === idToDelete) {
       setRecipe(null);
+      setActiveTab('history');
     }
     
     await refreshData();
   };
 
-  const isApiKeyOk = !!process.env.API_KEY && process.env.API_KEY.length > 10;
+  const apiKeyPresent = !!process.env.API_KEY && process.env.API_KEY.length > 5;
 
   return (
     <div className="min-h-screen bg-stone-50 hex-bg flex flex-col pb-24 md:pb-0">
@@ -144,7 +145,7 @@ const App: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <button onClick={() => setShowAuthModal(true)} className="px-6 py-2.5 bg-nonno-600 text-white rounded-xl font-bold shadow-lg text-sm active:scale-95 transition-all">Accedi</button>
+              <button onClick={() => setShowAuthModal(true)} className="px-6 py-2.5 bg-nonno-600 text-white rounded-xl font-bold shadow-lg text-sm">Accedi</button>
             )}
           </div>
         </div>
@@ -156,7 +157,7 @@ const App: React.FC = () => {
             <PlusCircle size={28} /><span className="text-[10px] font-bold">CUCINA</span>
           </button>
           <button onClick={() => {setRecipe(null); setActiveTab('history')}} className={`flex flex-col items-center gap-1 ${activeTab === 'history' ? 'text-nonno-600' : 'text-stone-300'}`}>
-            <Book size={28} /><span className="text-[10px] font-bold">MIEI PIATTI</span>
+            <Book size={28} /><span className="text-[10px] font-bold">I MIEI PIATTI</span>
           </button>
         </nav>
       )}
@@ -184,7 +185,7 @@ const App: React.FC = () => {
             {activeTab === 'create' && (
               <div className="space-y-12">
                 <div className="text-center max-w-2xl mx-auto space-y-5">
-                   <img src="https://image.pollinations.ai/prompt/smiling%20italian%20grandpa%20chef%20cartoon%20illustration%20warm%20friendly?width=200&height=200&nologo=true" alt="Nonno" className="w-32 h-32 mx-auto rounded-full border-4 border-white shadow-xl" />
+                   <img src="https://image.pollinations.ai/prompt/friendly%20italian%20grandpa%20chef%20smiling?width=200&height=200&nologo=true" alt="Nonno" className="w-32 h-32 mx-auto rounded-full border-4 border-white shadow-xl" />
                    <h2 className="text-4xl font-serif font-bold text-stone-800">Cosa cuciniamo oggi, Nipote {currentUser?.username || 'Caro'}?</h2>
                 </div>
                 <div className="grid lg:grid-cols-3 gap-10">
@@ -208,24 +209,22 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="bg-white border-t border-stone-100 py-12 px-6 flex flex-col items-center gap-4">
-         <div className="flex items-center gap-6">
-            <div className="flex flex-col items-center">
-               <span className="text-[10px] font-black text-stone-300 uppercase tracking-widest mb-1">Stato Sistema</span>
-               <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold ${isApiKeyOk ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                  {isApiKeyOk ? <CheckCircle2 size={12} /> : <ShieldAlert size={12} />}
-                  {isApiKeyOk ? 'API_KEY OK' : 'ERRORE API_KEY'}
-               </div>
+      <footer className="bg-white border-t border-stone-100 py-12 px-6 flex flex-col items-center gap-6">
+         <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-col items-center bg-stone-50 px-4 py-2 rounded-2xl border border-stone-100 min-w-[120px]">
+               <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Versione</span>
+               <span className="text-xs font-bold text-stone-600">{VERSION}</span>
             </div>
-            <div className="flex flex-col items-center">
-               <span className="text-[10px] font-black text-stone-300 uppercase tracking-widest mb-1">Versione</span>
-               <div className="bg-stone-100 px-3 py-1 rounded-full text-[10px] font-bold text-stone-500">
-                  {APP_VERSION}
+            <div className="flex flex-col items-center bg-stone-50 px-4 py-2 rounded-2xl border border-stone-100 min-w-[120px]">
+               <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Sorgente API</span>
+               <div className={`flex items-center gap-1 text-xs font-bold ${apiKeyPresent ? 'text-green-600' : 'text-red-600'}`}>
+                  {apiKeyPresent ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
+                  {apiKeyPresent ? 'COLLEGATA' : 'MANCANTE'}
                </div>
             </div>
          </div>
          <Heart size={24} className="text-red-500 animate-pulse" />
-         <p className="text-stone-400 font-bold text-[10px] uppercase tracking-widest">NonnoWeb © 2025 · Fatto con amore per i nipoti</p>
+         <p className="text-stone-400 font-bold text-[10px] uppercase tracking-widest">NonnoWeb © 2025 · Fatto con amore</p>
       </footer>
 
       {showAuthModal && <AuthModal onLogin={async (e, p) => { const r = await storageService.login(e, p); if (typeof r === 'string') return r; setCurrentUser(r); setShowAuthModal(false); return null; }} onClose={() => setShowAuthModal(false)} />}

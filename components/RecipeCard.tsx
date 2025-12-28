@@ -24,38 +24,21 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
     window.print();
   };
 
-  const handleShare = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `NonnoWeb - ${recipe.recipeName}`,
-          text: `Nipote, guarda questa ricetta: ${recipe.recipeName}`,
-          url: window.location.href
-        });
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        alert("Link copiato!");
-      }
-    } catch (err) {}
-  };
-
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    const idToDelete = String(recipe.id || "");
-    if (idToDelete && onDelete) {
-      if (window.confirm(`Nipote caro, vuoi davvero buttare via questa ricetta? Il Nonno non potrà più recuperarla!`)) {
-        onDelete(idToDelete);
+    const id = String(recipe.id || "");
+    if (id && onDelete) {
+      if (window.confirm(`Nipote, vuoi davvero eliminare questa ricetta per sempre?`)) {
+        onDelete(id);
       }
     }
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-slide-up pb-20 px-2 sm:px-4">
-      <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-stone-100 flex flex-col">
+      <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-stone-100 flex flex-col relative">
         <div className="relative w-full h-[300px] sm:h-[450px]">
           <img 
             src={`https://image.pollinations.ai/prompt/gourmet food photography of ${encodeURIComponent(recipe.recipeName)}?width=1200&height=800&nologo=true`} 
@@ -76,32 +59,31 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
             </div>
           </div>
 
-          <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-[150]">
+          <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-[100]">
             <button onClick={onReset} className="bg-white/95 p-3 rounded-full shadow-lg hover:bg-white active:scale-90 transition-all">
               <ArrowLeft size={22} className="text-stone-700" />
             </button>
             <div className="flex gap-3">
-              <button onClick={handleShare} className="bg-white/95 p-3 rounded-full shadow-lg text-stone-700 active:scale-90 transition-all">
-                <Share2 size={20} />
-              </button>
               {isLoggedIn && (
                 <div className="flex items-center gap-2">
                   {!isSaved ? (
                     <button 
                       onClick={(e) => { e.stopPropagation(); onSave?.(recipe); }} 
-                      className="bg-white p-3 rounded-full shadow-lg text-stone-700 hover:text-nonno-600 transition-all hover:scale-110 active:scale-95"
+                      className="bg-white p-3 rounded-full shadow-lg text-stone-700 hover:text-nonno-600 transition-all active:scale-90"
                     >
                       <Bookmark size={22} />
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2 bg-white/95 p-1.5 rounded-full shadow-xl border border-white">
+                    <div className="flex items-center gap-2 bg-white/95 p-1.5 rounded-full shadow-xl border border-white backdrop-blur-md">
                       <div className="bg-green-600 text-white p-2.5 rounded-full shadow-inner">
                         <BookmarkCheck size={20} />
                       </div>
+                      {/* TASTO ELIMINA SCHEDA */}
                       <button 
                         type="button"
                         onClick={handleDelete} 
-                        className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-700 transition-all active:scale-95 hover:scale-110 shadow-md z-[200]"
+                        className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-700 transition-all active:scale-90 shadow-md cursor-pointer z-[110]"
+                        title="Elimina definitivamente"
                       >
                         <Trash2 size={20} />
                       </button>
@@ -135,7 +117,7 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
               <div className="space-y-8">
                 {recipe.steps.map((step, idx) => (
                   <div key={idx} className="flex gap-5">
-                    <span className="shrink-0 w-10 h-10 bg-stone-900 text-white rounded-xl flex items-center justify-center font-bold shadow-md">{idx + 1}</span>
+                    <span className="shrink-0 w-10 h-10 bg-stone-900 text-white rounded-xl flex items-center justify-center font-bold">{idx + 1}</span>
                     <p className="text-stone-600 leading-relaxed font-medium pt-1">{step}</p>
                   </div>
                 ))}
@@ -144,12 +126,12 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 pt-10 border-t border-stone-100">
-            <div className="bg-indigo-50/50 p-6 rounded-[2rem] border border-indigo-100 shadow-sm">
+            <div className="bg-indigo-50/50 p-6 rounded-[2rem] border border-indigo-100">
               <div className="flex items-center gap-2 mb-2 text-indigo-600 font-black text-[10px] uppercase tracking-widest"><Wine size={18} /> Sommelier</div>
               <p className="font-bold text-indigo-900 text-lg">{recipe.winePairing}</p>
               <p className="text-xs text-indigo-700/70 italic mt-2">{recipe.winePairingReason}</p>
             </div>
-            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 shadow-sm">
+            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100">
               <div className="flex items-center gap-2 mb-2 text-nonno-600 font-black text-[10px] uppercase tracking-widest"><Sparkles size={18} /> Il Segreto</div>
               <p className="text-stone-600 italic text-sm">"{recipe.nonnoTip}"</p>
             </div>

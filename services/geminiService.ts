@@ -3,13 +3,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { RecipeRequest, RecipeResponse } from "../types";
 
 export const generateRecipe = async (request: RecipeRequest): Promise<RecipeResponse> => {
-  const key = process.env.API_KEY;
-  
-  if (!key || key.length < 5) {
-    throw new Error("API_KEY mancante o non valida nel sistema.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: key });
+  // Inizializzazione diretta come da linee guida
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
   
   const ingredients = [...request.selectedIngredients];
   if (request.customIngredients.trim()) {
@@ -17,20 +12,19 @@ export const generateRecipe = async (request: RecipeRequest): Promise<RecipeResp
   }
 
   const courseInstruction = request.courseType === 'sorpresa' 
-    ? "un piatto creativo basato sugli ingredienti" 
-    : `assolutamente un ${request.courseType}`;
+    ? "un piatto creativo dello chef" 
+    : `un ${request.courseType}`;
 
   const prompt = `
-    Sei NonnoWeb, un saggio chef italiano con anni di esperienza. 
-    Crea una ricetta deliziosa usando questi ingredienti: ${ingredients.join(", ")}.
-    Tipo piatto: ${courseInstruction}. 
+    Sei NonnoWeb, saggio chef italiano. Crea una ricetta.
+    Ingredienti: ${ingredients.join(", ")}.
+    Tipo: ${courseInstruction}. 
     Pasto: ${request.mealType}.
     Persone: ${request.peopleCount}.
-    Restrizioni: ${request.intolerances || "Nessuna"}.
+    Limitazioni: ${request.intolerances || "Nessuna"}.
     
-    Il tono deve essere caloroso, come un nonno che insegna al nipote. 
-    L'abbinamento vino deve essere un vino italiano specifico (es. Chianti, Vermentino, ecc.) con spiegazione.
-    Il consiglio segreto deve essere un trucco da chef esperto.
+    Tono: Caloroso e professionale.
+    Rispondi SEMPRE in JSON seguendo lo schema.
   `;
 
   const recipeSchema = {
@@ -59,13 +53,10 @@ export const generateRecipe = async (request: RecipeRequest): Promise<RecipeResp
     });
 
     const text = response.text;
-    if (!text) throw new Error("Il Nonno ha avuto un vuoto di memoria (Risposta vuota).");
+    if (!text) throw new Error("Risposta vuota dal Nonno.");
     return JSON.parse(text) as RecipeResponse;
   } catch (error: any) {
-    console.error("Errore Gemini:", error);
-    if (error.message?.includes("API_KEY_INVALID")) {
-      throw new Error("La chiave API non è valida. Controlla le impostazioni di Vercel.");
-    }
-    throw new Error(`Il Nonno ha bruciato il soffritto: ${error.message || "Errore sconosciuto"}`);
+    console.error("Dettaglio Errore:", error);
+    throw new Error(error.message || "Errore sconosciuto nella generazione.");
   }
 };
