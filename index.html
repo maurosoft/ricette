@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>NonnoWeb - In Cucina</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['Lora', 'serif'],
+              sans: ['Nunito', 'sans-serif'],
+            },
+            colors: {
+              nonno: {
+                50: '#fefce8',
+                100: '#fef9c3',
+                200: '#fde047',
+                500: '#eab308',
+                600: '#ca8a04',
+                700: '#a16207',
+                800: '#854d0e',
+                900: '#713f12',
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3"
+  }
+}
+</script>
+<style>
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    scroll-behavior: smooth;
+    background-color: #fafaf9;
+    color: #1c1917;
+  }
+
+  /* REGOLE DI STAMPA - INFALLIBILI */
+  @media print {
+    @page { 
+      margin: 1cm; 
+      size: auto; 
+    }
+    
+    body { background: white !important; }
+    
+    /* Nascondi tutto tranne il contenuto della ricetta */
+    body > *:not(#root) { display: none !important; }
+    #root > *:not(main) { display: none !important; }
+    header, footer, nav, button, .no-print, .fixed, .membership-cta { 
+      display: none !important; 
+    }
+    
+    #root main > *:not(#printable-recipe-content) {
+      display: none !important;
+    }
+
+    #printable-recipe-content {
+      display: block !important;
+      position: relative !important;
+      width: 100% !important;
+      box-shadow: none !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      visibility: visible !important;
+    }
+
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+
+  /* Custom Scrollbar per Membership Modal */
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
+  
+  .hex-bg {
+    background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+  }
+</style>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
