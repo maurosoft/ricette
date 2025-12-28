@@ -56,7 +56,6 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
     e.preventDefault();
     e.stopPropagation();
     
-    // Cerchiamo l'ID in ogni modo possibile, assicurandoci che sia una stringa
     const idToDelete = String(recipe.id || "");
     
     if (idToDelete && onDelete) {
@@ -65,8 +64,8 @@ const RecipeCard: React.FC<Props> = ({ recipe, requestDetails, onReset, onSave, 
         onDelete(idToDelete);
       }
     } else {
-      console.error("Errore: ID ricetta non trovato per la cancellazione", recipe);
-      alert("Nipote, c'è un problema con questa ricetta, il Nonno non riesce a trovarne il codice segreto per cancellarla!");
+      console.error("ID ricetta mancante in RecipeCard");
+      alert("Nipote, c'è un problema con questa ricetta, il Nonno non riesce a trovarne il codice identificativo per cancellarla!");
     }
   };
 
